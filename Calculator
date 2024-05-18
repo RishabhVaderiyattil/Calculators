@@ -1,0 +1,90 @@
+package Calculator;
+
+		import java.util.Scanner;
+		
+		public class Calculator {
+
+    public static void main(String[] args) {
+    		Scanner scanner = new Scanner(System.in);
+        	
+        System.out.println("use the following operations: +, -, *, /, ^ (power), sqrt (square root), and pi (for the constant pi");
+        System.out.print("input: ");
+
+    final String input = scanner.nextLine(); // Make the input variable final
+    try {
+        double result = evaluate(input);
+        System.out.println("Answer: " + result);
+    } catch (Exception e) {
+        System.out.println("Error in input: " + e.getMessage());
+        }
+
+        scanner.close();
+    }
+
+    public static double evaluate(final String input) {
+        final String processedInput = input.replaceAll("pi", String.valueOf(Math.PI));
+        	return new Object() {
+        int pos = -1, ch;
+
+            void nextChar() {
+                ch = (++pos < processedInput.length()) ? processedInput.charAt(pos) : -1;
+            }
+
+            boolean eat(int charToEat) {
+                while (ch == ' ') nextChar();
+                if (ch == charToEat) {
+                    nextChar();
+                    return true;
+                }
+                return false;
+            }
+
+            double parse() {
+            nextChar();
+	            double x = parseExpression();
+	            	if (pos < processedInput.length()) throw new RuntimeException("Unexpected: " + (char) ch);
+	            return x;
+            }
+
+            double parseExpression() {
+                	double x = parseTerm();
+                for (; ; ) {
+                    if (eat('+')) x += parseTerm();
+                    else if (eat('-')) x -= parseTerm();
+                    else return x;
+                }
+            }
+
+            double parseTerm() {
+                double x = parseFactor();
+                for (; ; ) {
+                if (eat('*')) x *= parseFactor();
+                else if (eat('/')) x /= parseFactor();
+                else return x;
+                }
+            }
+
+            double parseFactor() {
+                if (eat('+')) return parseFactor();
+                if (eat('-')) return -parseFactor();
+
+                double x;
+	                int startPos = this.pos;
+	                if ((ch >= '0' && ch <= '9') || ch == '.') {
+                    while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
+                    x = Double.parseDouble(processedInput.substring(startPos, this.pos));
+                } else if (ch == 's' && processedInput.substring(pos).startsWith("sqrt")) {
+                pos += 3;
+                nextChar();
+                x = Math.sqrt(parseFactor());
+            } else {
+                    throw new RuntimeException("Unexpected: " + (char) ch);
+                }
+
+            if (eat('^')) x = Math.pow(x, parseFactor());
+
+                return x;
+            }
+        }.parse();
+    }
+}
